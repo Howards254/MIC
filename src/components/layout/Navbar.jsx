@@ -1,10 +1,21 @@
 import { Link } from 'react-router-dom';
-import { Menu, Leaf } from 'lucide-react';
+import { Menu, Leaf, LogOut, User, Bell, LayoutDashboard } from 'lucide-react';
 import Button from '../ui/Button';
+import useAuth from '../../hooks/useAuth';
 
 export default function Navbar() {
+  const { user, profile, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   return (
-    <nav className="sticky top-0 z-40 bg-white shadow-sm">
+    <nav className="sticky top-0 z-40 bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-2">
@@ -16,27 +27,47 @@ export default function Navbar() {
             <Link to="/" className="text-gray-700 hover:text-green-800 font-medium transition-colors">
               Home
             </Link>
-            <Link to="/innovators" className="text-gray-700 hover:text-green-800 font-medium transition-colors">
-              Innovators
-            </Link>
-            <Link to="/investors" className="text-gray-700 hover:text-green-800 font-medium transition-colors">
-              Investors
+            <Link to="/explore" className="text-gray-700 hover:text-green-800 font-medium transition-colors">
+              Explore Projects
             </Link>
             <Link to="/jobs" className="text-gray-700 hover:text-green-800 font-medium transition-colors">
               Jobs
             </Link>
-            <Link to="/explore" className="text-gray-700 hover:text-green-800 font-medium transition-colors">
-              Explore Projects
+            <Link to="/blog" className="text-gray-700 hover:text-green-800 font-medium transition-colors">
+              Blog
             </Link>
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/signin">
-              <Button variant="outline" size="sm">Sign In</Button>
-            </Link>
-            <Link to="/signup">
-              <Button size="sm">Sign Up</Button>
-            </Link>
+            {user ? (
+              <>
+                <Link to="/dashboard/notifications" className="text-gray-700 hover:text-green-800">
+                  <Bell size={20} />
+                </Link>
+                <Link to={profile?.role === 'admin' ? '/admin' : '/dashboard'} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
+                  <div className="w-8 h-8 bg-green-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    {profile?.full_name?.charAt(0)}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-gray-900">{profile?.full_name}</p>
+                    <p className="text-xs text-gray-500 capitalize">{profile?.role}</p>
+                  </div>
+                </Link>
+                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                  <LogOut size={16} className="mr-2" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/signin">
+                  <Button variant="outline" size="sm">Sign In</Button>
+                </Link>
+                <Link to="/signup">
+                  <Button size="sm">Sign Up</Button>
+                </Link>
+              </>
+            )}
           </div>
 
           <button className="md:hidden text-gray-700">

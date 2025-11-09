@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Supabase Connection</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Supabase Connection Test</h1>
+    <button onclick="testConnection()">Test Connection</button>
+    <button onclick="testSignup()">Test Signup</button>
+    <div id="result" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://nzmoqwqvejfuycqjliag.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im56bW9xd3F2ZWpmdXljcWpsaWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2MjE0NDIsImV4cCI6MjA3ODE5NzQ0Mn0.g-N8sDuEi0QMIMXxM3m4B7AAy30olIyT1e14Pk3V7-s';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function testConnection() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testing connection...';
+            
+            try {
+                // Test if profiles table exists
+                const { data, error } = await supabase.from('profiles').select('count').limit(1);
+                
+                if (error) {
+                    result.innerHTML = `<strong style="color: red;">❌ ERROR:</strong><br>${error.message}<br><br>
+                    <strong>Solution:</strong> You need to run the supabase-schema.sql file in Supabase SQL Editor!`;
+                } else {
+                    result.innerHTML = '<strong style="color: green;">✅ SUCCESS!</strong><br>Database is set up correctly!';
+                }
+            } catch (err) {
+                result.innerHTML = `<strong style="color: red;">❌ ERROR:</strong><br>${err.message}`;
+            }
+        }
+
+        async function testSignup() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testing signup...';
+            
+            const testEmail = 'test' + Date.now() + '@example.com';
+            const testPassword = 'test123456';
+            
+            try {
+                const { data, error } = await supabase.auth.signUp({
+                    email: testEmail,
+                    password: testPassword
+                });
+                
+                if (error) {
+                    result.innerHTML = `<strong style="color: red;">❌ SIGNUP ERROR:</strong><br>${error.message}`;
+                } else if (!data || !data.user) {
+                    result.innerHTML = '<strong style="color: red;">❌ ERROR:</strong><br>Signup returned no user data';
+                } else {
+                    result.innerHTML = `<strong style="color: green;">✅ SIGNUP SUCCESS!</strong><br>
+                    User ID: ${data.user.id}<br>
+                    Email: ${data.user.email}<br><br>
+                    <strong>Now testing profile creation...</strong>`;
+                    
+                    // Try to create profile
+                    const { error: profileError } = await supabase.from('profiles').insert([{
+                        id: data.user.id,
+                        email: testEmail,
+                        full_name: 'Test User',
+                        role: 'user'
+                    }]);
+                    
+                    if (profileError) {
+                        result.innerHTML += `<br><br><strong style="color: red;">❌ PROFILE ERROR:</strong><br>${profileError.message}`;
+                    } else {
+                        result.innerHTML += '<br><br><strong style="color: green;">✅ PROFILE CREATED!</strong><br>Everything works!';
+                    }
+                }
+            } catch (err) {
+                result.innerHTML = `<strong style="color: red;">❌ ERROR:</strong><br>${err.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -70,7 +70,12 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-700 mt-8 pt-8 text-center text-sm">
-          <p>&copy; 2025 Maathai Innovation Catalyst. All rights reserved.</p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <p>&copy; 2025 Maathai Innovation Catalyst. All rights reserved.</p>
+            <Link to="/terms" className="hover:text-white transition-colors">
+              Terms & Conditions
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

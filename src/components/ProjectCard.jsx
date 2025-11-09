@@ -1,14 +1,16 @@
 import { Link } from 'react-router-dom';
 import Card from './Card';
 import Button from './ui/Button';
+import DonateButton from './donations/DonateButton';
 
-export default function ProjectCard({ id, title, description, fundingGoal, fundsRaised, daysLeft, imageUrl }) {
-  const fundingPercentage = (fundsRaised / fundingGoal) * 100;
+export default function ProjectCard({ id, title, description, fundingGoal, fundsRaised = 0, totalDonations = 0, imageUrl }) {
+  const totalFunding = fundsRaised + totalDonations;
+  const fundingPercentage = (totalFunding / fundingGoal) * 100;
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
       <img
-        src={imageUrl || 'https://placehold.co/600x400/cccccc/FFFFFF?text=Project+Image'}
+        src={imageUrl || 'https://placehold.co/600x400/22543D/FFFFFF?text=Project'}
         alt={title}
         className="w-full h-48 object-cover"
       />
@@ -26,14 +28,21 @@ export default function ProjectCard({ id, title, description, fundingGoal, funds
           </div>
         </div>
 
-        <div className="flex justify-between items-center mb-4 text-sm">
-          <span className="font-semibold text-green-800">{fundingPercentage.toFixed(0)}% Funded</span>
-          <span className="text-gray-600">{daysLeft} Days Left</span>
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <p className="text-sm text-gray-600">Raised</p>
+            <p className="font-bold text-green-800">${totalFunding.toLocaleString()}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-gray-600">Goal</p>
+            <p className="font-semibold text-gray-900">${fundingGoal.toLocaleString()}</p>
+          </div>
         </div>
 
-        <Link to={`/project/${id}`}>
-          <Button fullWidth>Learn More & Donate</Button>
-        </Link>
+        <div className="flex gap-2">
+          <DonateButton project={{ id, title, description, funding_goal: fundingGoal, total_donations: totalDonations }} variant="secondary" />
+          <Button fullWidth>View</Button>
+        </div>
       </div>
     </Card>
   );
