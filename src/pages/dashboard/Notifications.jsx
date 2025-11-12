@@ -13,13 +13,43 @@ export default function Notifications() {
   }, [user]);
 
   const fetchNotifications = async () => {
-    const { data } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-    setNotifications(data || []);
-    setLoading(false);
+    try {
+      // Fetch from notifications table if it exists
+      const { data: notifData } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      // Also fetch rejected projects as notifications
+      const { data: rejectedProjects } = await supabase
+        .from('projects')
+        .select('id, title, rejection_reason, rejected_at, status')
+        .eq('innovator_id', user.id)
+        .eq('status', 'rejected')
+        .not('rejection_reason', 'is', null)
+        .order('rejected_at', { ascending: false });
+      
+      // Combine notifications
+      const projectNotifications = (rejectedProjects || []).map(project => ({
+        id: `project-${project.id}`,
+        title: `Project Rejected: ${project.title}`,
+        message: project.rejection_reason,
+        created_at: project.rejected_at,
+        read: false,
+        type: 'project_rejection',
+        project_id: project.id
+      }));
+      
+      const allNotifications = [...(notifData || []), ...projectNotifications]
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      
+      setNotifications(allNotifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const markAsRead = async (id) => {
@@ -75,14 +105,24 @@ export default function Notifications() {
                   <X size={20} />
                 </button>
               </div>
-              {!notif.read && (
-                <button
-                  onClick={() => markAsRead(notif.id)}
-                  className="mt-4 text-sm text-green-800 hover:text-green-900"
-                >
-                  Mark as read
-                </button>
-              )}
+              <div className="mt-4 flex gap-3">
+                {!notif.read && notif.type !== 'project_rejection' && (
+                  <button
+                    onClick={() => markAsRead(notif.id)}
+                    className="text-sm text-green-800 hover:text-green-900"
+                  >
+                    Mark as read
+                  </button>
+                )}
+                {notif.type === 'project_rejection' && notif.project_id && (
+                  <a
+                    href={`/dashboard/edit-project/${notif.project_id}`}
+                    className="text-sm bg-green-800 text-white px-4 py-2 rounded-lg hover:bg-green-900"
+                  >
+                    Fix & Resubmit Project
+                  </a>
+                )}
+              </div>
             </div>
           ))}
         </div>

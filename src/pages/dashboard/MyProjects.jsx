@@ -17,7 +17,7 @@ export default function MyProjects() {
     const { data } = await supabase
       .from('projects')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('innovator_id', user.id)
       .order('created_at', { ascending: false });
     setProjects(data || []);
     setLoading(false);
@@ -66,6 +66,14 @@ export default function MyProjects() {
                 </span>
               </div>
               <p className="text-gray-700 mb-4">{project.description}</p>
+              
+              {project.status === 'rejected' && project.rejection_reason && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm font-semibold text-red-800 mb-1">Rejection Reason:</p>
+                  <p className="text-sm text-red-700">{project.rejection_reason}</p>
+                  <p className="text-xs text-red-600 mt-2">You can edit and resubmit this project after fixing the issues.</p>
+                </div>
+              )}
               <div className="flex gap-6 text-sm text-gray-600 mb-4">
                 <div className="flex items-center gap-1">
                   <TrendingUp size={16} />
@@ -81,19 +89,21 @@ export default function MyProjects() {
                 </div>
               </div>
               <div className="flex gap-3">
-                <Link
-                  to={`/project/${project.id}`}
-                  className="inline-flex items-center gap-2 text-green-800 hover:text-green-900"
-                >
-                  <Eye size={16} />
-                  View
-                </Link>
+                {project.status === 'approved' && (
+                  <Link
+                    to={`/project/${project.id}`}
+                    className="inline-flex items-center gap-2 text-green-800 hover:text-green-900"
+                  >
+                    <Eye size={16} />
+                    View
+                  </Link>
+                )}
                 <Link
                   to={`/dashboard/edit-project/${project.id}`}
                   className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
                 >
                   <Edit size={16} />
-                  Edit
+                  {project.status === 'rejected' ? 'Fix & Resubmit' : 'Edit'}
                 </Link>
                 <button
                   onClick={() => deleteProject(project.id)}

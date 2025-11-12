@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, FolderKanban, TrendingUp, MessageSquare, 
   Briefcase, FileText, Settings, LogOut, Menu, X, DollarSign,
-  BarChart3, Users, Bell, Plus, UserPlus, Send, UserCog
+  BarChart3, Users, Bell, Plus, UserPlus, Send, UserCog, Wallet
 } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
 
@@ -18,39 +18,37 @@ export default function DashboardLayout({ children }) {
     navigate('/');
   };
 
-  const userNavigation = [
+  const innovatorNavigation = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
     { name: 'My Projects', href: '/dashboard/projects', icon: FolderKanban },
-    { name: 'Browse Investors', href: '/dashboard/browse-investors', icon: Users },
-    { name: 'Apply as Investor', href: '/dashboard/apply-investor', icon: UserPlus },
-    { name: 'Job Applications', href: '/dashboard/applications', icon: Briefcase },
+    { name: 'Investment Offers', href: '/dashboard/investment-offers', icon: DollarSign },
+    { name: 'Messages', href: '/dashboard/messaging', icon: MessageSquare },
     { name: 'Notifications', href: '/dashboard/notifications', icon: Bell },
-    { name: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
     { name: 'Profile Settings', href: '/dashboard/settings', icon: Settings },
   ];
 
   const investorNavigation = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Deal Flow', href: '/dashboard/deals', icon: FileText },
-    { name: 'Portfolio', href: '/dashboard/portfolio', icon: TrendingUp },
-    { name: 'Investments', href: '/dashboard/investments', icon: DollarSign },
+    { name: 'My Wallet', href: '/dashboard/wallet', icon: Wallet },
+    { name: 'Browse Projects', href: '/explore', icon: FolderKanban },
+    { name: 'My Investments', href: '/dashboard/portfolio', icon: TrendingUp },
+    { name: 'Messages', href: '/dashboard/messaging', icon: MessageSquare },
     { name: 'Investor Profile', href: '/dashboard/investor-profile', icon: UserCog },
-    { name: 'My Projects', href: '/dashboard/projects', icon: FolderKanban },
     { name: 'Notifications', href: '/dashboard/notifications', icon: Bell },
-    { name: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
     { name: 'Profile Settings', href: '/dashboard/settings', icon: Settings },
   ];
 
   const adminNavigation = [
     { name: 'Platform Overview', href: '/admin', icon: LayoutDashboard },
     { name: 'Approvals', href: '/admin/approvals', icon: Settings },
+    { name: 'Manage Events', href: '/admin/events', icon: Plus },
     { name: 'Send Notification', href: '/admin/notifications', icon: Send },
     { name: 'Blog Management', href: '/admin/blog', icon: FileText },
     { name: 'All Projects', href: '/admin/all-projects', icon: FolderKanban },
     { name: 'All Users', href: '/admin/all-users', icon: Users },
   ];
 
-  const navigation = profile?.role === 'admin' ? adminNavigation : profile?.role === 'investor' ? investorNavigation : userNavigation;
+  const navigation = profile?.role === 'admin' ? adminNavigation : profile?.role === 'investor' ? investorNavigation : innovatorNavigation;
 
   return (
     <div className="min-h-screen bg-gray-50">

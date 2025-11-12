@@ -11,13 +11,55 @@ export default function BrowseInvestors() {
   }, []);
 
   const fetchInvestors = async () => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*, investor_profiles(*)')
-      .eq('role', 'investor')
-      .not('investor_profiles', 'is', null);
-    setInvestors(data || []);
-    setLoading(false);
+    try {
+      // Get all approved investor applications
+      const { data: applications, error } = await supabase
+        .from('investor_applications')
+        .select('*')
+        .eq('status', 'approved');
+
+      if (error) throw error;
+
+      if (!applications || applications.length === 0) {
+        setInvestors([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get investor profile details
+      const investorsWithProfiles = await Promise.all(
+        applications.map(async (app) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', app.user_id)
+            .single();
+
+          return {
+            ...profile,
+            investor_profiles: [{
+              company_name: app.company_name,
+              investment_range: app.investment_range,
+              areas_of_interest: app.areas_of_interest,
+              investment_thesis: app.investment_thesis,
+              portfolio_companies: app.portfolio_companies,
+              preferred_stage: app.preferred_stage,
+              ticket_size_min: app.ticket_size_min,
+              ticket_size_max: app.ticket_size_max,
+              geographic_focus: app.geographic_focus,
+              decision_timeline: app.decision_timeline,
+              value_add: app.value_add
+            }]
+          };
+        })
+      );
+
+      setInvestors(investorsWithProfiles);
+    } catch (error) {
+      console.error('Error fetching investors:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) return <div className="text-center py-12">Loading...</div>;

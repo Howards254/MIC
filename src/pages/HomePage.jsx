@@ -202,11 +202,11 @@ export default function HomePage() {
           </div>
 
           <div className="text-center">
-            <Link to="/explore">
-              <Button variant="outline" size="lg" className="group">
+            <Link to="/explore" className="inline-block">
+              <button className="group px-8 py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2">
                 View All Projects
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
             </Link>
           </div>
         </div>

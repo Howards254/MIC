@@ -40,8 +40,20 @@ export default function ProjectDetailPage() {
   const fetchProject = async () => {
     setLoading(true);
     try {
-      const { data: projectData } = await supabase.from('projects').select('*').eq('id', id).single();
-      const { data: ownerData } = await supabase.from('profiles').select('*').eq('id', projectData.user_id).single();
+      const { data: projectData, error: projectError } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (projectError) throw projectError;
+      
+      const { data: ownerData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', projectData.innovator_id)
+        .single();
+      
       setProject(projectData);
       setOwner(ownerData);
     } catch (error) {
@@ -53,7 +65,11 @@ export default function ProjectDetailPage() {
 
   const fetchJobs = async () => {
     try {
-      const { data } = await supabase.from('jobs').select('*').eq('project_id', id).eq('status', 'open');
+      const { data } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('project_id', id)
+        .eq('is_active', true);
       setJobs(data || []);
     } catch (error) {
       console.error('Error fetching jobs:', error);
@@ -62,7 +78,11 @@ export default function ProjectDetailPage() {
 
   const fetchDonations = async () => {
     try {
-      const { data } = await supabase.from('donations').select('*').eq('project_id', id).eq('status', 'completed');
+      const { data } = await supabase
+        .from('donations')
+        .select('*')
+        .eq('project_id', id)
+        .order('created_at', { ascending: false });
       setDonations(data || []);
     } catch (error) {
       console.error('Error fetching donations:', error);
@@ -75,39 +95,34 @@ export default function ProjectDetailPage() {
       alert('Only approved investors can invest');
       return;
     }
-    try {
-      await supabase.from('investments').insert([{
-        project_id: id,
-        investor_id: user.id,
-        amount: parseFloat(investAmount),
-        message: investMessage
-      }]);
-      setIsInvestModalOpen(false);
-      setInvestAmount('');
-      setInvestMessage('');
-      fetchProject();
-    } catch (error) {
-      console.error('Error investing:', error);
-    }
+    
+    // Redirect to proper investment flow
+    navigate(`/dashboard/invest/${id}`);
+    setIsInvestModalOpen(false);
   };
 
   const handlePostJob = async (e) => {
     e.preventDefault();
     try {
-      const requirements = jobForm.requirements.split('\n').filter(r => r.trim());
-      const responsibilities = jobForm.responsibilities.split('\n').filter(r => r.trim());
       await supabase.from('jobs').insert([{
-        ...jobForm,
-        requirements,
-        responsibilities,
         project_id: id,
-        posted_by: user.id
+        innovator_id: user.id,
+        title: jobForm.title,
+        description: jobForm.description,
+        requirements: jobForm.requirements,
+        how_to_apply: 'Please email your resume to ' + owner?.email,
+        location: jobForm.location,
+        job_type: jobForm.job_type,
+        salary_range: jobForm.salary_range,
+        is_active: true
       }]);
       setIsJobModalOpen(false);
       setJobForm({ title: '', description: '', location: '', job_type: 'full-time', salary_range: '', requirements: '', responsibilities: '' });
+      alert('Job posted successfully!');
       fetchJobs();
     } catch (error) {
       console.error('Error posting job:', error);
+      alert('Error posting job: ' + error.message);
     }
   };
 
@@ -123,10 +138,10 @@ export default function ProjectDetailPage() {
           <h1 className="text-4xl font-bold text-gray-900 mb-4">{project.title}</h1>
           <p className="text-gray-600 mb-6">{project.description}</p>
 
-          {project.stage && (
+          {project.category && (
             <div className="mb-6">
               <span className="px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                Stage: {project.stage}
+                {project.category}
               </span>
             </div>
           )}
@@ -186,26 +201,31 @@ export default function ProjectDetailPage() {
             </div>
           )}
 
-          {project.unique_value && (
+          {project.problem_statement && (
             <div className="mb-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">What Makes This Unique</h3>
-              <p className="text-gray-600">{project.unique_value}</p>
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Problem Statement</h3>
+              <p className="text-gray-600">{project.problem_statement}</p>
             </div>
           )}
 
-          {project.market_size && (
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Market Opportunity</h3>
-              <p className="text-gray-600">{project.market_size}</p>
+          {project.solution && (
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Solution</h3>
+              <p className="text-gray-600">{project.solution}</p>
             </div>
           )}
 
-          {project.video_url && (
+          {project.target_market && (
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Target Market</h3>
+              <p className="text-gray-600">{project.target_market}</p>
+            </div>
+          )}
+
+          {project.business_model && (
             <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Pitch Video</h3>
-              <a href={project.video_url} target="_blank" rel="noopener noreferrer" className="text-green-800 hover:underline">
-                Watch Pitch Video →
-              </a>
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Business Model</h3>
+              <p className="text-gray-600">{project.business_model}</p>
             </div>
           )}
 
@@ -214,7 +234,7 @@ export default function ProjectDetailPage() {
             {profile?.role === 'investor' && (
               <Button onClick={() => setIsInvestModalOpen(true)} size="lg">Invest in This Project</Button>
             )}
-            {user?.id === project.user_id && (
+            {user?.id === project.innovator_id && (
               <Button onClick={() => setIsJobModalOpen(true)} variant="outline" size="lg">
                 <Briefcase size={20} className="mr-2" />
                 Post a Job

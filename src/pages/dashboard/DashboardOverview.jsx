@@ -25,12 +25,13 @@ export default function DashboardOverview() {
     setLoading(true);
     try {
       if (profile.role === 'investor') {
-        const [investmentsRes, messagesRes] = await Promise.all([
-          supabase.from('investments').select('*, projects(*)').eq('investor_id', user.id),
-          supabase.from('messages').select('*', { count: 'exact' }).eq('receiver_id', user.id).eq('read', false)
+        const [investmentsRes, walletRes, messagesRes] = await Promise.all([
+          supabase.from('investment_commitments').select('*').eq('investor_id', user.id),
+          supabase.from('investor_wallets').select('*').eq('investor_id', user.id).single(),
+          supabase.from('messages').select('*', { count: 'exact' }).eq('receiver_id', user.id).eq('is_read', false)
         ]);
 
-        const totalInvested = investmentsRes.data?.reduce((sum, inv) => sum + parseFloat(inv.amount), 0) || 0;
+        const totalInvested = walletRes.data?.total_invested || 0;
 
         setStats({
           totalInvested,
@@ -39,20 +40,18 @@ export default function DashboardOverview() {
           unreadMessages: messagesRes.count || 0
         });
       } else {
-        const [projectsRes, appsRes, messagesRes] = await Promise.all([
-          supabase.from('projects').select('*', { count: 'exact' }).eq('user_id', user.id),
-          supabase.from('job_applications').select('*', { count: 'exact' }).eq('user_id', user.id),
-          supabase.from('messages').select('*', { count: 'exact' }).eq('receiver_id', user.id).eq('read', false)
+        const [projectsRes, messagesRes] = await Promise.all([
+          supabase.from('projects').select('*').eq('innovator_id', user.id),
+          supabase.from('messages').select('*', { count: 'exact' }).eq('receiver_id', user.id).eq('is_read', false)
         ]);
 
         const approvedProjects = projectsRes.data?.filter(p => p.status === 'approved').length || 0;
         const totalFunding = projectsRes.data?.reduce((sum, p) => sum + (parseFloat(p.funds_raised) || 0), 0) || 0;
 
         setStats({
-          totalProjects: projectsRes.count || 0,
+          totalProjects: projectsRes.data?.length || 0,
           approvedProjects,
           totalFunding,
-          jobApplications: appsRes.count || 0,
           unreadMessages: messagesRes.count || 0
         });
       }
@@ -77,7 +76,7 @@ export default function DashboardOverview() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {profile?.role === 'investor' ? (
           <>
             <Card className="p-6">
@@ -140,15 +139,7 @@ export default function DashboardOverview() {
               </div>
               <div className="flex items-center mt-2 text-sm text-green-600"><ArrowUpRight size={16} className="mr-1" /><span>Raised so far</span></div>
             </Card>
-            <Card className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Job Applications</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">{stats.jobApplications}</p>
-                </div>
-                <div className="p-3 bg-purple-100 rounded-lg"><Briefcase className="text-purple-800" size={24} /></div>
-              </div>
-            </Card>
+
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -162,18 +153,7 @@ export default function DashboardOverview() {
         )}
       </div>
 
-      {profile?.role !== 'investor' && (
-        <Card className="p-6 bg-gradient-to-r from-green-50 to-green-100 border-green-200">
-          <div className="flex items-start">
-            <DollarSign size={48} className="text-green-800 mr-4" />
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Become an Investor</h2>
-              <p className="text-gray-700 mb-4">Apply to invest in sustainable projects</p>
-              <Button><TrendingUp size={20} className="mr-2" />Apply to Invest</Button>
-            </div>
-          </div>
-        </Card>
-      )}
+
     </div>
   );
 }

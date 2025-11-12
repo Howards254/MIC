@@ -14,6 +14,7 @@ import TermsPage from './pages/TermsPage';
 import NotFoundPage from './pages/NotFoundPage';
 import BlogList from './pages/blog/BlogList';
 import BlogPost from './pages/blog/BlogPost';
+import EventsPage from './pages/EventsPage';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
               <Route path="/dashboard/*" element={<DashboardPage />} />
               <Route path="/admin/*" element={<AdminPage />} />
               <Route path="/terms" element={<TermsPage />} />
+              <Route path="/events" element={<EventsPage />} />
               <Route path="/blog" element={<BlogList />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="*" element={<NotFoundPage />} />

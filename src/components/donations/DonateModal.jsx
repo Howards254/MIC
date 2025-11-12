@@ -13,7 +13,7 @@ const DONATION_TIERS = [
   { amount: 1000, label: 'Forest Champion' }
 ];
 
-const PLATFORM_FEE_RATE = 0.03;
+const PLATFORM_FEE_RATE = 0.02;
 
 export default function DonateModal({ project, onClose }) {
   const { user, profile } = useAuth();
@@ -196,7 +196,7 @@ export default function DonateModal({ project, onClose }) {
               <span className="font-medium">${amount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm text-gray-600">
-              <span>Platform Fee (3%):</span>
+              <span>Platform Fee (2%):</span>
               <span>${platformFee}</span>
             </div>
             <div className="flex justify-between font-bold text-lg pt-2 border-t">

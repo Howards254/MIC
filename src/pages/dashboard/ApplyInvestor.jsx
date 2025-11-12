@@ -27,22 +27,16 @@ export default function ApplyInvestor() {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.from('investor_applications').insert([{
+    const { error } = await supabase.from('investor_profiles').insert([{
       user_id: user.id,
       company_name: formData.company_name,
-      investment_range: formData.investment_range,
-      areas_of_interest: formData.areas_of_interest.split(',').map(s => s.trim()).filter(s => s),
-      linkedin_url: formData.linkedin_profile,
-      reason: formData.reason,
       investment_thesis: formData.investment_thesis,
-      portfolio_companies: formData.portfolio_companies,
-      preferred_stage: formData.preferred_stage,
-      ticket_size_min: formData.ticket_size_min ? parseInt(formData.ticket_size_min) : null,
-      ticket_size_max: formData.ticket_size_max ? parseInt(formData.ticket_size_max) : null,
-      geographic_focus: formData.geographic_focus,
-      decision_timeline: formData.decision_timeline,
-      value_add: formData.value_add,
-      status: 'pending'
+      min_ticket_size: formData.ticket_size_min ? parseFloat(formData.ticket_size_min) : null,
+      max_ticket_size: formData.ticket_size_max ? parseFloat(formData.ticket_size_max) : null,
+      sectors_of_interest: formData.areas_of_interest.split(',').map(s => s.trim()).filter(s => s),
+      geographic_focus: formData.geographic_focus ? [formData.geographic_focus] : [],
+      linkedin_url: formData.linkedin_profile,
+      is_approved: false
     }]);
 
     if (error) {
@@ -52,7 +46,11 @@ export default function ApplyInvestor() {
       return;
     }
 
-    if (!error) {
+    if (error) {
+      if (error.code === '23505') {
+        alert('You have already submitted an investor application. Please wait for admin approval.');
+      }
+    } else {
       alert('Application submitted! Admin will review it soon.');
       navigate('/dashboard');
     }

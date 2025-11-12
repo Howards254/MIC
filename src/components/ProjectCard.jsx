@@ -1,9 +1,10 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Card from './Card';
 import Button from './ui/Button';
 import DonateButton from './donations/DonateButton';
 
 export default function ProjectCard({ id, title, description, fundingGoal, fundsRaised = 0, totalDonations = 0, imageUrl }) {
+  const navigate = useNavigate();
   const totalFunding = fundsRaised + totalDonations;
   const fundingPercentage = (totalFunding / fundingGoal) * 100;
 
@@ -41,7 +42,7 @@ export default function ProjectCard({ id, title, description, fundingGoal, funds
 
         <div className="flex gap-2">
           <DonateButton project={{ id, title, description, funding_goal: fundingGoal, total_donations: totalDonations }} variant="secondary" />
-          <Button fullWidth>View</Button>
+          <Button fullWidth onClick={() => navigate(`/project/${id}`)}>View</Button>
         </div>
       </div>
     </Card>

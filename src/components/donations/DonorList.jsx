@@ -11,13 +11,18 @@ export default function DonorList({ projectId }) {
   }, [projectId]);
 
   const fetchDonations = async () => {
+    if (!projectId) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('donations')
         .select('*')
         .eq('project_id', projectId)
-        .eq('status', 'completed')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(10);
 
       if (error) throw error;
       setDonations(data || []);

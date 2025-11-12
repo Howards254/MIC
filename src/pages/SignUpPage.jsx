@@ -6,7 +6,7 @@ import Button from '../components/ui/Button';
 import { supabase } from '../supabaseClient';
 
 export default function SignUpPage() {
-  const [formData, setFormData] = useState({ fullName: '', email: '', password: '', terms: false });
+  const [formData, setFormData] = useState({ fullName: '', email: '', password: '', role: '', terms: false });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,6 +19,11 @@ export default function SignUpPage() {
     
     if (formData.fullName.trim().length < 2) {
       setError('Please enter your full name');
+      return;
+    }
+
+    if (!formData.role) {
+      setError('Please select your role');
       return;
     }
 
@@ -51,7 +56,7 @@ export default function SignUpPage() {
           id: authData.user.id,
           email: formData.email,
           full_name: formData.fullName,
-          role: 'user',
+          role: formData.role,
         });
 
       if (profileError) throw profileError;
@@ -117,6 +122,38 @@ export default function SignUpPage() {
               onChange={(e) => setFormData({...formData, email: e.target.value})}
               required
             />
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                I am signing up as
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, role: 'innovator'})}
+                  className={`p-4 border-2 rounded-lg text-left transition-all ${
+                    formData.role === 'innovator'
+                      ? 'border-green-600 bg-green-50'
+                      : 'border-gray-300 hover:border-green-400'
+                  }`}
+                >
+                  <div className="font-semibold text-gray-900">Innovator</div>
+                  <div className="text-sm text-gray-600 mt-1">Submit projects & post jobs</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, role: 'investor'})}
+                  className={`p-4 border-2 rounded-lg text-left transition-all ${
+                    formData.role === 'investor'
+                      ? 'border-green-600 bg-green-50'
+                      : 'border-gray-300 hover:border-green-400'
+                  }`}
+                >
+                  <div className="font-semibold text-gray-900">Investor</div>
+                  <div className="text-sm text-gray-600 mt-1">Fund sustainable projects</div>
+                </button>
+              </div>
+            </div>
 
             <Input
               label="Password"

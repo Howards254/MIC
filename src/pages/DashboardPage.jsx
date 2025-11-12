@@ -17,6 +17,10 @@ import Portfolio from './dashboard/Portfolio';
 import Investments from './dashboard/Investments';
 import DealFlow from './dashboard/DealFlow';
 import Notifications from './dashboard/Notifications';
+import InvestmentCommitment from './dashboard/InvestmentCommitment';
+import InvestmentOffers from './dashboard/InvestmentOffers';
+import InvestorWallet from './dashboard/InvestorWallet';
+import MessagingCenter from './dashboard/MessagingCenter';
 import AllProjects from './admin/AllProjects';
 import AllUsers from './admin/AllUsers';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
@@ -52,6 +56,10 @@ export default function DashboardPage() {
         <Route path="portfolio" element={<Portfolio />} />
         <Route path="investments" element={<Investments />} />
         <Route path="deals" element={<DealFlow />} />
+        <Route path="invest/:projectId" element={<InvestmentCommitment />} />
+        <Route path="investment-offers" element={<InvestmentOffers />} />
+        <Route path="wallet" element={<InvestorWallet />} />
+        <Route path="messaging" element={<MessagingCenter />} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="all-projects" element={<AllProjects />} />
         <Route path="all-users" element={<AllUsers />} />

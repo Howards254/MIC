@@ -37,9 +37,9 @@ export default function AdminApprovals() {
         .order('created_at', { ascending: false });
 
       const investorsRes = await supabase
-        .from('investor_applications')
+        .from('investor_profiles')
         .select('*')
-        .eq('status', 'pending')
+        .eq('is_approved', false)
         .order('created_at', { ascending: false });
 
       const adminsRes = await supabase
@@ -64,7 +64,7 @@ export default function AdminApprovals() {
           const { data: profile } = await supabase
             .from('profiles')
             .select('full_name, email')
-            .eq('id', project.user_id)
+            .eq('id', project.innovator_id)
             .single();
           return { ...project, profiles: profile };
         })
@@ -93,55 +93,41 @@ export default function AdminApprovals() {
   };
 
   const handleApproveProject = async (projectId) => {
-    await supabase.from('projects').update({ status: 'approved', reviewed_by: user.id, reviewed_at: new Date().toISOString() }).eq('id', projectId);
+    await supabase.from('projects').update({ status: 'approved', approved_by: user.id, approved_at: new Date().toISOString() }).eq('id', projectId);
     fetchData();
   };
 
   const handleRejectProject = async () => {
-    await supabase.from('projects').update({ status: 'rejected', reviewed_by: user.id, reviewed_at: new Date().toISOString(), rejection_reason: rejectionReason }).eq('id', selectedProject.id);
+    if (!rejectionReason.trim()) {
+      alert('Please provide a rejection reason');
+      return;
+    }
+    
+    await supabase.from('projects').update({ 
+      status: 'rejected', 
+      rejected_by: user.id, 
+      rejected_at: new Date().toISOString(),
+      rejection_reason: rejectionReason
+    }).eq('id', selectedProject.id);
+    
     setIsRejectModalOpen(false);
     setRejectionReason('');
     setSelectedProject(null);
     fetchData();
   };
 
-  const handleApproveInvestor = async (appId, userId) => {
-    // Get the investor application details
-    const { data: app } = await supabase.from('investor_applications').select('*').eq('id', appId).single();
-    
-    // Update application status
-    await supabase.from('investor_applications').update({ 
-      status: 'approved', 
-      reviewed_by: user.id, 
-      reviewed_at: new Date().toISOString() 
-    }).eq('id', appId);
-    
-    // Update user role to investor
-    await supabase.from('profiles').update({ role: 'investor' }).eq('id', userId);
-    
-    // Create investor profile
-    if (app) {
-      await supabase.from('investor_profiles').insert([{
-        user_id: userId,
-        company_name: app.company_name || 'N/A',
-        investment_range: app.investment_range,
-        areas_of_interest: app.areas_of_interest,
-        investment_thesis: app.investment_thesis,
-        portfolio_companies: app.portfolio_companies,
-        preferred_stage: app.preferred_stage,
-        ticket_size_min: app.ticket_size_min,
-        ticket_size_max: app.ticket_size_max,
-        geographic_focus: app.geographic_focus,
-        decision_timeline: app.decision_timeline,
-        value_add: app.value_add
-      }]);
-    }
+  const handleApproveInvestor = async (profileId, userId) => {
+    await supabase.from('investor_profiles').update({ 
+      is_approved: true,
+      approved_by: user.id, 
+      approved_at: new Date().toISOString() 
+    }).eq('id', profileId);
     
     fetchData();
   };
 
-  const handleRejectInvestor = async (appId) => {
-    await supabase.from('investor_applications').update({ status: 'rejected', reviewed_by: user.id, reviewed_at: new Date().toISOString() }).eq('id', appId);
+  const handleRejectInvestor = async (profileId) => {
+    await supabase.from('investor_profiles').delete().eq('id', profileId);
     fetchData();
   };
 

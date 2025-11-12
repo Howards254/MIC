@@ -19,9 +19,9 @@ export default function AdminDashboard() {
         supabase.from('profiles').select('*', { count: 'exact' }),
         supabase.from('projects').select('*', { count: 'exact' }),
         supabase.from('profiles').select('*', { count: 'exact' }).eq('role', 'investor'),
-        supabase.from('investments').select('amount'),
+        supabase.from('investment_commitments').select('amount'),
         supabase.from('projects').select('*', { count: 'exact' }).eq('status', 'pending'),
-        supabase.from('investor_applications').select('*', { count: 'exact' }).eq('status', 'pending'),
+        supabase.from('investor_profiles').select('*', { count: 'exact' }).eq('is_approved', false),
         supabase.from('projects').select('*', { count: 'exact' }).eq('status', 'approved'),
         supabase.from('projects').select('*', { count: 'exact' }).eq('status', 'rejected')
       ]);
@@ -40,8 +40,19 @@ export default function AdminDashboard() {
         regularUsers: (allUsers.count || 0) - (allInvestors.count || 0)
       });
 
-      const { data: recentProjects } = await supabase.from('projects').select('*, profiles(full_name)').order('created_at', { ascending: false }).limit(5);
-      setRecentActivity(recentProjects || []);
+      const { data: recentProjects } = await supabase.from('projects').select('*').order('created_at', { ascending: false }).limit(5);
+      
+      const projectsWithProfiles = await Promise.all(
+        (recentProjects || []).map(async (project) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', project.innovator_id)
+            .single();
+          return { ...project, profiles: profile };
+        })
+      );
+      setRecentActivity(projectsWithProfiles || []);
     } catch (error) {
       console.error('Error:', error);
     } finally {

@@ -35,7 +35,7 @@ export default function AllUsers() {
       </div>
 
       <div className="mb-6 flex gap-2">
-        {['all', 'user', 'investor', 'admin'].map((role) => (
+        {['all', 'innovator', 'investor', 'admin'].map((role) => (
           <button
             key={role}
             onClick={() => setFilter(role)}

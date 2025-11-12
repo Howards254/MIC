@@ -49,6 +49,8 @@ export default function ExploreProjectsPage() {
         <button onClick={() => setFilter('Furniture')} className={`px-4 py-2 rounded-lg ${filter === 'Furniture' ? 'bg-green-800 text-white' : 'bg-gray-200 text-gray-700'}`}>Furniture</button>
         <button onClick={() => setFilter('Packaging')} className={`px-4 py-2 rounded-lg ${filter === 'Packaging' ? 'bg-green-800 text-white' : 'bg-gray-200 text-gray-700'}`}>Packaging</button>
         <button onClick={() => setFilter('Textiles')} className={`px-4 py-2 rounded-lg ${filter === 'Textiles' ? 'bg-green-800 text-white' : 'bg-gray-200 text-gray-700'}`}>Textiles</button>
+        <button onClick={() => setFilter('Energy')} className={`px-4 py-2 rounded-lg ${filter === 'Energy' ? 'bg-green-800 text-white' : 'bg-gray-200 text-gray-700'}`}>Energy</button>
+        <button onClick={() => setFilter('Agriculture')} className={`px-4 py-2 rounded-lg ${filter === 'Agriculture' ? 'bg-green-800 text-white' : 'bg-gray-200 text-gray-700'}`}>Agriculture</button>
         <button onClick={() => setFilter('Other')} className={`px-4 py-2 rounded-lg ${filter === 'Other' ? 'bg-green-800 text-white' : 'bg-gray-200 text-gray-700'}`}>Other</button>
       </div>
 

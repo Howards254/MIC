@@ -57,18 +57,12 @@ export default function InvestorProfile() {
     setLoading(true);
 
     const profileData = {
-      user_id: user.id,
       company_name: formData.company_name,
-      investment_range: formData.investment_range,
-      areas_of_interest: formData.areas_of_interest,
       investment_thesis: formData.investment_thesis,
-      portfolio_companies: formData.portfolio_companies,
-      preferred_stage: formData.preferred_stage,
-      ticket_size_min: formData.ticket_size_min ? parseInt(formData.ticket_size_min) : null,
-      ticket_size_max: formData.ticket_size_max ? parseInt(formData.ticket_size_max) : null,
-      geographic_focus: formData.geographic_focus,
-      decision_timeline: formData.decision_timeline,
-      value_add: formData.value_add
+      min_ticket_size: formData.ticket_size_min ? parseFloat(formData.ticket_size_min) : null,
+      max_ticket_size: formData.ticket_size_max ? parseFloat(formData.ticket_size_max) : null,
+      sectors_of_interest: typeof formData.areas_of_interest === 'string' ? formData.areas_of_interest.split(',').map(s => s.trim()) : formData.areas_of_interest,
+      geographic_focus: formData.geographic_focus ? [formData.geographic_focus] : []
     };
 
     if (hasProfile) {

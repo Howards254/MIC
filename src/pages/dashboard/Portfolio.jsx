@@ -14,13 +14,35 @@ export default function Portfolio() {
   }, [user]);
 
   const fetchInvestments = async () => {
-    const { data } = await supabase
-      .from('investments')
-      .select('*, project:projects(title, description, current_funding, funding_goal)')
-      .eq('investor_id', user.id)
-      .order('created_at', { ascending: false });
-    setInvestments(data || []);
-    setLoading(false);
+    try {
+      const { data: invs, error } = await supabase
+        .from('investment_commitments')
+        .select('*')
+        .eq('investor_id', user.id)
+        .in('status', ['agreed', 'deal_signed'])
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch project details separately
+      const invsWithProjects = await Promise.all(
+        (invs || []).map(async (inv) => {
+          const { data: project } = await supabase
+            .from('projects')
+            .select('title, description, funds_raised, funding_goal')
+            .eq('id', inv.project_id)
+            .maybeSingle();
+
+          return { ...inv, project };
+        })
+      );
+
+      setInvestments(invsWithProjects);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const totalInvested = investments.reduce((sum, inv) => sum + inv.amount, 0);
@@ -59,14 +81,17 @@ export default function Portfolio() {
                   <h3 className="text-xl font-bold text-gray-900">{inv.project?.title}</h3>
                   <p className="text-sm text-gray-600 mt-1">{inv.project?.description}</p>
                 </div>
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                  ${inv.amount.toLocaleString()}
-                </span>
+                <div className="text-right">
+                  <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                    ${inv.amount.toLocaleString()}
+                  </span>
+                  <p className="text-xs text-gray-500 mt-1">{inv.equity_offered}% equity</p>
+                </div>
               </div>
               <div className="flex gap-6 text-sm text-gray-600">
                 <div className="flex items-center gap-1">
                   <TrendingUp size={16} />
-                  <span>${inv.project?.current_funding?.toLocaleString()} / ${inv.project?.funding_goal?.toLocaleString()}</span>
+                  <span>${inv.project?.funds_raised?.toLocaleString() || 0} / ${inv.project?.funding_goal?.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar size={16} />

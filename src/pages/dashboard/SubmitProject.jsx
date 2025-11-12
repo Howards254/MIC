@@ -10,39 +10,36 @@ export default function SubmitProject() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    funding_goal: '',
     category: 'Building Materials',
-    stage: 'Idea',
-    team_size: '',
+    problem_statement: '',
+    solution: '',
+    target_market: '',
+    business_model: '',
+    funding_goal: '',
     timeline: '',
+    team_size: '',
     technology: '',
-    impact_metrics: '',
-    unique_value: '',
-    market_size: '',
-    video_url: ''
+    impact_metrics: ''
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.from('projects').insert([{
-      user_id: user.id,
+    const projectData = {
+      innovator_id: user.id,
       title: formData.title,
       description: formData.description,
-      funding_goal: parseFloat(formData.funding_goal),
       category: formData.category,
-      stage: formData.stage,
-      team_size: formData.team_size ? parseInt(formData.team_size) : null,
-      timeline: formData.timeline || 'TBD',
-      technology: formData.technology,
-      impact_metrics: formData.impact_metrics,
-      unique_value: formData.unique_value,
-      market_size: formData.market_size,
-      video_url: formData.video_url,
-      status: 'pending',
-      funds_raised: 0
-    }]);
+      problem_statement: formData.problem_statement || null,
+      solution: formData.solution || null,
+      target_market: formData.target_market || null,
+      business_model: formData.business_model || null,
+      funding_goal: parseFloat(formData.funding_goal),
+      status: 'pending'
+    };
+
+    const { error } = await supabase.from('projects').insert([projectData]);
 
     if (error) {
       console.error('Error:', error);
@@ -75,10 +72,11 @@ export default function SubmitProject() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
             <textarea
               required
-              rows={5}
+              rows={4}
               value={formData.description}
               onChange={(e) => setFormData({...formData, description: e.target.value})}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+              placeholder="Brief overview of your project"
             />
           </div>
 
@@ -88,13 +86,60 @@ export default function SubmitProject() {
               value={formData.category}
               onChange={(e) => setFormData({...formData, category: e.target.value})}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+              required
             >
               <option>Building Materials</option>
               <option>Furniture</option>
               <option>Packaging</option>
               <option>Textiles</option>
+              <option>Energy</option>
+              <option>Agriculture</option>
               <option>Other</option>
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Problem Statement</label>
+            <textarea
+              rows={3}
+              value={formData.problem_statement}
+              onChange={(e) => setFormData({...formData, problem_statement: e.target.value})}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+              placeholder="What problem are you solving?"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Solution</label>
+            <textarea
+              rows={3}
+              value={formData.solution}
+              onChange={(e) => setFormData({...formData, solution: e.target.value})}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+              placeholder="How does your project solve this problem?"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Target Market</label>
+            <textarea
+              rows={3}
+              value={formData.target_market}
+              onChange={(e) => setFormData({...formData, target_market: e.target.value})}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+              placeholder="Who are your customers?"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Business Model</label>
+            <textarea
+              rows={3}
+              value={formData.business_model}
+              onChange={(e) => setFormData({...formData, business_model: e.target.value})}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+              placeholder="How will you make money?"
+            />
           </div>
 
           <div>
@@ -106,25 +151,23 @@ export default function SubmitProject() {
               value={formData.funding_goal}
               onChange={(e) => setFormData({...formData, funding_goal: e.target.value})}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
+              placeholder="Minimum $1,000"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Project Stage</label>
-            <select
-              value={formData.stage}
-              onChange={(e) => setFormData({...formData, stage: e.target.value})}
+            <label className="block text-sm font-medium text-gray-700 mb-2">Timeline (Optional)</label>
+            <input
+              type="text"
+              value={formData.timeline}
+              onChange={(e) => setFormData({...formData, timeline: e.target.value})}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
-            >
-              <option>Idea</option>
-              <option>Prototype</option>
-              <option>MVP</option>
-              <option>Scaling</option>
-            </select>
+              placeholder="e.g., 12 months to market"
+            />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Team Size</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Team Size (Optional)</label>
             <input
               type="number"
               min="1"
@@ -136,18 +179,7 @@ export default function SubmitProject() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Timeline</label>
-            <input
-              type="text"
-              value={formData.timeline}
-              onChange={(e) => setFormData({...formData, timeline: e.target.value})}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
-              placeholder="e.g., 12 months to market"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Technology/Materials Used</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Technology/Materials (Optional)</label>
             <textarea
               rows={3}
               value={formData.technology}
@@ -158,46 +190,13 @@ export default function SubmitProject() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Environmental Impact Goals</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Environmental Impact (Optional)</label>
             <textarea
               rows={3}
               value={formData.impact_metrics}
               onChange={(e) => setFormData({...formData, impact_metrics: e.target.value})}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
               placeholder="e.g., Reduce CO2 by 50%, Save 1000 trees annually"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">What Makes Your Project Unique?</label>
-            <textarea
-              rows={3}
-              value={formData.unique_value}
-              onChange={(e) => setFormData({...formData, unique_value: e.target.value})}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
-              placeholder="Your competitive advantage"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Market Size</label>
-            <input
-              type="text"
-              value={formData.market_size}
-              onChange={(e) => setFormData({...formData, market_size: e.target.value})}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
-              placeholder="e.g., $500M TAM, Growing 20% annually"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Pitch Video URL (Optional)</label>
-            <input
-              type="url"
-              value={formData.video_url}
-              onChange={(e) => setFormData({...formData, video_url: e.target.value})}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500"
-              placeholder="YouTube or Vimeo link"
             />
           </div>
 

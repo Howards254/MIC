@@ -33,6 +33,9 @@ export default function Navbar() {
             <Link to="/jobs" className="text-gray-700 hover:text-green-800 font-medium transition-colors">
               Jobs
             </Link>
+            <Link to="/events" className="text-gray-700 hover:text-green-800 font-medium transition-colors">
+              Events
+            </Link>
             <Link to="/blog" className="text-gray-700 hover:text-green-800 font-medium transition-colors">
               Blog
             </Link>
@@ -41,10 +44,16 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <>
+                {profile?.role === 'admin' && (
+                  <Link to="/admin" className="flex items-center gap-2 px-3 py-2 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 font-medium">
+                    <LayoutDashboard size={18} />
+                    Admin Panel
+                  </Link>
+                )}
                 <Link to="/dashboard/notifications" className="text-gray-700 hover:text-green-800">
                   <Bell size={20} />
                 </Link>
-                <Link to={profile?.role === 'admin' ? '/admin' : '/dashboard'} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
+                <Link to="/dashboard" className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
                   <div className="w-8 h-8 bg-green-800 rounded-full flex items-center justify-center text-white font-bold text-sm">
                     {profile?.full_name?.charAt(0)}
                   </div>
