@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="32" fill="#10b981"/>
+  
+  <!-- MIC letters in modern style -->
+  <g fill="#ffffff">
+    <!-- M -->
+    <path d="M12 20 L12 44 L15 44 L15 26 L20 36 L23 36 L28 26 L28 44 L31 44 L31 20 L26 20 L21.5 31 L17 20 Z"/>
+    
+    <!-- I -->
+    <path d="M35 20 L35 44 L38 44 L38 20 Z"/>
+    
+    <!-- C -->
+    <path d="M42 28 C42 23.5 45 20 49 20 C51.5 20 53.5 21 55 23 L53 25 C52 23.5 50.5 23 49 23 C46.5 23 45 25 45 28 L45 36 C45 39 46.5 41 49 41 C50.5 41 52 40.5 53 39 L55 41 C53.5 43 51.5 44 49 44 C45 44 42 40.5 42 36 Z"/>
+  </g>
+  
+  <!-- Eco leaf accent -->
+  <path d="M50 12 Q54 12 54 16 Q54 20 50 24 Q48 22 48 18 Q48 14 50 12 Z" fill="#dcfce7" opacity="0.8"/>
+</svg>
