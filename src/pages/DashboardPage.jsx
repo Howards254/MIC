@@ -10,12 +10,7 @@ import ApplyInvestor from './dashboard/ApplyInvestor';
 import BrowseInvestors from './dashboard/BrowseInvestors';
 import InvestorProfile from './dashboard/InvestorProfile';
 import ProfileSettings from './dashboard/ProfileSettings';
-import Messages from './dashboard/Messages';
-import JobApplications from './dashboard/JobApplications';
-import Analytics from './dashboard/Analytics';
 import Portfolio from './dashboard/Portfolio';
-import Investments from './dashboard/Investments';
-import DealFlow from './dashboard/DealFlow';
 import Notifications from './dashboard/Notifications';
 import InvestmentCommitment from './dashboard/InvestmentCommitment';
 import InvestmentOffers from './dashboard/InvestmentOffers';
@@ -50,12 +45,7 @@ export default function DashboardPage() {
         <Route path="browse-investors" element={<BrowseInvestors />} />
         <Route path="investor-profile" element={<InvestorProfile />} />
         <Route path="settings" element={<ProfileSettings />} />
-        <Route path="messages" element={<Messages />} />
-        <Route path="applications" element={<JobApplications />} />
-        <Route path="analytics" element={<Analytics />} />
         <Route path="portfolio" element={<Portfolio />} />
-        <Route path="investments" element={<Investments />} />
-        <Route path="deals" element={<DealFlow />} />
         <Route path="invest/:projectId" element={<InvestmentCommitment />} />
         <Route path="investment-offers" element={<InvestmentOffers />} />
         <Route path="wallet" element={<InvestorWallet />} />
