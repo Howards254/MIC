@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
+import { supabase } from '../supabaseClient';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import DashboardOverview from './dashboard/DashboardOverview';
 import MyProjects from './dashboard/MyProjects';
@@ -16,6 +17,7 @@ import InvestmentCommitment from './dashboard/InvestmentCommitment';
 import InvestmentOffers from './dashboard/InvestmentOffers';
 import InvestorWallet from './dashboard/InvestorWallet';
 import MessagingCenter from './dashboard/MessagingCenter';
+import InvestorPending from './dashboard/InvestorPending';
 import AllProjects from './admin/AllProjects';
 import AllUsers from './admin/AllUsers';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
@@ -23,16 +25,43 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 export default function DashboardPage() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
+  const [investorStatus, setInvestorStatus] = useState(null);
+  const [checkingStatus, setCheckingStatus] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
       navigate('/signin');
     } else if (!loading && profile?.role === 'admin') {
       navigate('/admin');
+    } else if (!loading && profile?.role === 'investor') {
+      checkInvestorStatus();
+    } else {
+      setCheckingStatus(false);
     }
   }, [user, profile, loading, navigate]);
 
-  if (loading) return <div className="flex justify-center items-center min-h-screen"><LoadingSpinner size="lg" /></div>;
+  const checkInvestorStatus = async () => {
+    const { data } = await supabase
+      .from('investor_profiles')
+      .select('is_approved')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    
+    setInvestorStatus(data);
+    setCheckingStatus(false);
+  };
+
+  if (loading || checkingStatus) return <div className="flex justify-center items-center min-h-screen"><LoadingSpinner size="lg" /></div>;
+
+  // Investor needs to complete profile
+  if (profile?.role === 'investor' && !investorStatus) {
+    return <ApplyInvestor />;
+  }
+
+  // Investor profile pending approval
+  if (profile?.role === 'investor' && investorStatus && !investorStatus.is_approved) {
+    return <InvestorPending />;
+  }
 
   return (
     <DashboardLayout>

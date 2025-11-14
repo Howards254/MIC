@@ -49,10 +49,12 @@ export default function ApplyInvestor() {
     if (error) {
       if (error.code === '23505') {
         alert('You have already submitted an investor application. Please wait for admin approval.');
+      } else {
+        alert('Error submitting application: ' + error.message);
       }
     } else {
       alert('Application submitted! Admin will review it soon.');
-      navigate('/dashboard');
+      window.location.href = '/dashboard';
     }
     setLoading(false);
   };
