@@ -43,7 +43,7 @@ export default function DashboardPage() {
   const checkInvestorStatus = async () => {
     const { data } = await supabase
       .from('investor_profiles')
-      .select('is_approved')
+      .select('is_approved, rejection_reason, rejected_at')
       .eq('user_id', user.id)
       .maybeSingle();
     
@@ -53,13 +53,13 @@ export default function DashboardPage() {
 
   if (loading || checkingStatus) return <div className="flex justify-center items-center min-h-screen"><LoadingSpinner size="lg" /></div>;
 
-  // Investor needs to complete profile
-  if (profile?.role === 'investor' && !investorStatus) {
-    return <ApplyInvestor />;
+  // Investor needs to complete profile OR was rejected (can resubmit)
+  if (profile?.role === 'investor' && (!investorStatus || investorStatus.rejection_reason)) {
+    return <ApplyInvestor rejectionReason={investorStatus?.rejection_reason} />;
   }
 
   // Investor profile pending approval
-  if (profile?.role === 'investor' && investorStatus && !investorStatus.is_approved) {
+  if (profile?.role === 'investor' && investorStatus && !investorStatus.is_approved && !investorStatus.rejection_reason) {
     return <InvestorPending />;
   }
 

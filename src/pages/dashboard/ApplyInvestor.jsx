@@ -3,10 +3,11 @@ import { ChevronRight, ChevronLeft, Building2, Target, TrendingUp } from 'lucide
 import { supabase } from '../../supabaseClient';
 import useAuth from '../../hooks/useAuth';
 
-export default function ApplyInvestor() {
+export default function ApplyInvestor({ rejectionReason }) {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [isResubmit, setIsResubmit] = useState(!!rejectionReason);
   const [formData, setFormData] = useState({
     company_name: '',
     investment_range: '',
@@ -24,7 +25,7 @@ export default function ApplyInvestor() {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.from('investor_profiles').insert([{
+    const profileData = {
       user_id: user.id,
       company_name: formData.company_name,
       investment_thesis: formData.investment_thesis,
@@ -33,26 +34,58 @@ export default function ApplyInvestor() {
       sectors_of_interest: formData.areas_of_interest.split(',').map(s => s.trim()).filter(s => s),
       geographic_focus: formData.geographic_focus ? [formData.geographic_focus] : [],
       linkedin_url: formData.linkedin_profile,
-      is_approved: false
-    }]);
+      is_approved: false,
+      rejection_reason: null,
+      rejected_at: null,
+      rejected_by: null
+    };
+
+    const { error } = isResubmit 
+      ? await supabase.from('investor_profiles').update(profileData).eq('user_id', user.id)
+      : await supabase.from('investor_profiles').insert([profileData]);
 
     if (error) {
       alert(error.code === '23505' ? 'Application already submitted. Please wait for approval.' : 'Error: ' + error.message);
     } else {
-      alert('Application submitted! Admin will review it soon.');
+      alert(isResubmit ? 'Application resubmitted! Admin will review it soon.' : 'Application submitted! Admin will review it soon.');
       window.location.href = '/dashboard';
     }
     setLoading(false);
   };
 
-  const nextStep = () => setStep(step + 1);
+  const validateStep = () => {
+    if (step === 1) {
+      if (!formData.company_name.trim() || !formData.reason.trim()) {
+        alert('Please fill in all required fields');
+        return false;
+      }
+    }
+    if (step === 2) {
+      if (!formData.investment_range || !formData.areas_of_interest.trim()) {
+        alert('Please fill in all required fields');
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const nextStep = () => {
+    if (validateStep()) setStep(step + 1);
+  };
   const prevStep = () => setStep(step - 1);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
       <div className="max-w-2xl w-full">
+        {rejectionReason && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-sm font-medium text-red-900 mb-1">Application Rejected</p>
+            <p className="text-sm text-red-800">{rejectionReason}</p>
+            <p className="text-xs text-red-700 mt-2">Please fix the issues and resubmit your application.</p>
+          </div>
+        )}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Investor Profile</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{isResubmit ? 'Resubmit Your' : 'Complete Your'} Investor Profile</h1>
           <p className="text-gray-600">Step {step} of 3</p>
         </div>
 

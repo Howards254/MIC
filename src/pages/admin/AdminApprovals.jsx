@@ -19,6 +19,7 @@ export default function AdminApprovals() {
   const [selectedInvestor, setSelectedInvestor] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isRejectingInvestor, setIsRejectingInvestor] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isAddAdminModalOpen, setIsAddAdminModalOpen] = useState(false);
   const [newAdminEmail, setNewAdminEmail] = useState('');
@@ -126,8 +127,23 @@ export default function AdminApprovals() {
     fetchData();
   };
 
-  const handleRejectInvestor = async (profileId) => {
-    await supabase.from('investor_profiles').delete().eq('id', profileId);
+  const handleRejectInvestor = async () => {
+    if (!rejectionReason.trim()) {
+      alert('Please provide a rejection reason');
+      return;
+    }
+    
+    await supabase.from('investor_profiles').update({ 
+      is_approved: false,
+      rejected_by: user.id, 
+      rejected_at: new Date().toISOString(),
+      rejection_reason: rejectionReason
+    }).eq('id', selectedInvestor.id);
+    
+    setIsRejectModalOpen(false);
+    setIsRejectingInvestor(false);
+    setRejectionReason('');
+    setSelectedInvestor(null);
     fetchData();
   };
 
@@ -229,7 +245,7 @@ export default function AdminApprovals() {
                     <div className="flex gap-2">
                       <Button size="sm" onClick={() => { setSelectedInvestor(investor); setIsViewModalOpen(true); }}><Eye size={16} className="mr-1" />View</Button>
                       <Button size="sm" onClick={() => handleApproveInvestor(investor.id, investor.user_id)}><CheckCircle size={16} className="mr-1" />Approve</Button>
-                      <Button size="sm" variant="outline" onClick={() => handleRejectInvestor(investor.id)}><XCircle size={16} className="mr-1" />Reject</Button>
+                      <Button size="sm" variant="outline" onClick={() => { setSelectedInvestor(investor); setIsRejectingInvestor(true); setIsRejectModalOpen(true); }}><XCircle size={16} className="mr-1" />Reject</Button>
                     </div>
                   </td>
                 </tr>
@@ -262,13 +278,13 @@ export default function AdminApprovals() {
         </div>
       </Card>
 
-      <Modal isOpen={isRejectModalOpen} onClose={() => setIsRejectModalOpen(false)} title="Reject Project">
+      <Modal isOpen={isRejectModalOpen} onClose={() => { setIsRejectModalOpen(false); setIsRejectingInvestor(false); }} title={isRejectingInvestor ? "Reject Investor" : "Reject Project"}>
         <div className="space-y-4">
-          <p className="text-gray-600">Provide a reason for rejecting this project:</p>
+          <p className="text-gray-600">Provide a reason for rejection:</p>
           <Textarea value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} rows={4} placeholder="Enter rejection reason..." required />
           <div className="flex gap-4 pt-4">
-            <Button fullWidth variant="outline" onClick={() => setIsRejectModalOpen(false)}>Cancel</Button>
-            <Button fullWidth onClick={handleRejectProject} disabled={!rejectionReason}>Reject Project</Button>
+            <Button fullWidth variant="outline" onClick={() => { setIsRejectModalOpen(false); setIsRejectingInvestor(false); }}>Cancel</Button>
+            <Button fullWidth onClick={isRejectingInvestor ? handleRejectInvestor : handleRejectProject} disabled={!rejectionReason}>{isRejectingInvestor ? 'Reject Investor' : 'Reject Project'}</Button>
           </div>
         </div>
       </Modal>
