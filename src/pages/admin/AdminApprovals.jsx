@@ -278,7 +278,7 @@ export default function AdminApprovals() {
         </div>
       </Card>
 
-      <Modal isOpen={isRejectModalOpen} onClose={() => { setIsRejectModalOpen(false); setIsRejectingInvestor(false); }} title={isRejectingInvestor ? "Reject Investor" : "Reject Project"}>
+      <Modal isOpen={isRejectModalOpen} onClose={() => { setIsRejectModalOpen(false); setIsRejectingInvestor(false); setRejectionReason(''); setSelectedProject(null); setSelectedInvestor(null); }} title={isRejectingInvestor ? "Reject Investor" : "Reject Project"}>
         <div className="space-y-4">
           <p className="text-gray-600">Provide a reason for rejection:</p>
           <Textarea value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} rows={4} placeholder="Enter rejection reason..." required />
