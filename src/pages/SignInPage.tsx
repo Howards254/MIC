@@ -4,6 +4,7 @@ import Card from '../components/Card';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import useAuth from '../hooks/useAuth';
+import { showSuccess, showError } from '../lib/toast';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
@@ -25,9 +26,12 @@ export default function SignInPage() {
     setLoading(true);
     try {
       await signIn(email, password);
+      showSuccess('Welcome back!');
       navigate('/dashboard');
-    } catch (err) {
-      setError(err.message || 'Invalid email or password');
+    } catch (err: any) {
+      const errorMsg = err.message || 'Invalid email or password';
+      setError(errorMsg);
+      showError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -69,6 +73,15 @@ export default function SignInPage() {
               {loading ? 'Signing In...' : 'Sign In'}
             </Button>
           </form>
+
+          <div className="mt-4 text-center">
+            <Link 
+              to="/forgot-password" 
+              className="text-sm text-green-800 hover:text-green-900 font-medium"
+            >
+              Forgot your password?
+            </Link>
+          </div>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">

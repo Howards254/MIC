@@ -59,7 +59,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       email, 
       password,
       options: {
-        emailRedirectTo: window.location.origin + '/dashboard'
+        emailRedirectTo: window.location.origin + '/dashboard',
+        data: {
+          email_confirm: true
+        }
       }
     });
     if (error) throw error;
@@ -74,6 +77,20 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  };
+
+  const forgotPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/reset-password',
+    });
+    if (error) throw error;
+  };
+
+  const resetPassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
     if (error) throw error;
   };
 
@@ -102,6 +119,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     signOut,
     updateProfile,
     refreshProfile: () => user && fetchProfile(user.id),
+    forgotPassword,
+    resetPassword,
   };
 
   return (

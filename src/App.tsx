@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import ScrollToTop from './components/ScrollToTop';
@@ -9,6 +10,8 @@ import ExploreProjectsPage from './pages/ExploreProjectsPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import AdminPage from './pages/AdminPage';
 import TermsPage from './pages/TermsPage';
@@ -22,6 +25,18 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <ScrollToTop />
+        <Toaster
+          position="top-right"
+          reverseOrder={false}
+          gutter={8}
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+            },
+          }}
+        />
         <div className="min-h-screen flex flex-col">
           <Navbar />
           <main className="flex-grow">
@@ -32,6 +47,8 @@ function App() {
               <Route path="/project/:id" element={<ProjectDetailPage />} />
               <Route path="/signin" element={<SignInPage />} />
               <Route path="/signup" element={<SignUpPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/dashboard/*" element={<DashboardPage />} />
               <Route path="/admin/*" element={<AdminPage />} />
               <Route path="/terms" element={<TermsPage />} />

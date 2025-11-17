@@ -4,6 +4,7 @@ import Card from '../components/Card';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import { supabase } from '../lib/supabase';
+import { showSuccess, showError, showInfo } from '../lib/toast';
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({ fullName: '', email: '', password: '', role: '', terms: false });
@@ -44,6 +45,13 @@ export default function SignUpPage() {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
+        options: {
+          emailRedirectTo: window.location.origin + '/dashboard',
+          data: {
+            full_name: formData.fullName,
+            role: formData.role,
+          }
+        }
       });
 
       if (authError) throw authError;
@@ -62,20 +70,26 @@ export default function SignUpPage() {
       if (profileError) throw profileError;
 
       // Success!
-      setSuccess('Account created successfully! Redirecting...');
-      setTimeout(() => navigate('/dashboard'), 1500);
+      const successMsg = 'Account created! Please check your email to verify your account.';
+      setSuccess(successMsg);
+      showSuccess(successMsg);
+      showInfo('Check your spam folder if you don\'t see the email.');
+      setTimeout(() => navigate('/signin'), 3000);
       
-    } catch (err) {
+    } catch (err: any) {
       console.error('Signup error:', err);
       
       // User-friendly error messages
+      let errorMsg = '';
       if (err.message?.includes('already registered')) {
-        setError('This email is already registered. Try signing in instead.');
+        errorMsg = 'This email is already registered. Try signing in instead.';
       } else if (err.message?.includes('profiles')) {
-        setError('Database not set up. Please run supabase-schema.sql first.');
+        errorMsg = 'Database not set up. Please run the database migration first.';
       } else {
-        setError(err.message || 'Failed to create account. Please try again.');
+        errorMsg = err.message || 'Failed to create account. Please try again.';
       }
+      setError(errorMsg);
+      showError(errorMsg);
     } finally {
       setLoading(false);
     }

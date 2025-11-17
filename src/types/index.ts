@@ -129,6 +129,8 @@ export interface AuthContextType {
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<Profile>;
   refreshProfile: () => void;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (newPassword: string) => Promise<void>;
 }
 
 // Component Props Types
