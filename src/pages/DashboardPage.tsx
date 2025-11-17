@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../lib/supabase';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import DashboardOverview from './dashboard/DashboardOverview';
 import MyProjects from './dashboard/MyProjects';

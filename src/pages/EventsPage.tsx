@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Calendar, MapPin, Users, DollarSign, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, Users, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import PageShell from '../components/layout/PageShell';
 import useAuth from '../hooks/useAuth';

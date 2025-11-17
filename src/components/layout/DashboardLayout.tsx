@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, FolderKanban, TrendingUp, MessageSquare, 
-  Briefcase, FileText, Settings, LogOut, Menu, X, DollarSign,
-  BarChart3, Users, Bell, Plus, UserPlus, Send, UserCog, Wallet
+  FileText, Settings, LogOut, Menu, X, DollarSign,
+  Users, Bell, Plus, Send, UserCog, Wallet
 } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
 

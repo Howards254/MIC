@@ -76,17 +76,18 @@ export default function SignUpPage() {
       showInfo('Check your spam folder if you don\'t see the email.');
       setTimeout(() => navigate('/signin'), 3000);
       
-    } catch (err: any) {
-      console.error('Signup error:', err);
+    } catch (err) {
+      const error = err as Error;
+      console.error('Signup error:', error);
       
       // User-friendly error messages
       let errorMsg = '';
-      if (err.message?.includes('already registered')) {
+      if (error.message?.includes('already registered')) {
         errorMsg = 'This email is already registered. Try signing in instead.';
-      } else if (err.message?.includes('profiles')) {
+      } else if (error.message?.includes('profiles')) {
         errorMsg = 'Database not set up. Please run the database migration first.';
       } else {
-        errorMsg = err.message || 'Failed to create account. Please try again.';
+        errorMsg = error.message || 'Failed to create account. Please try again.';
       }
       setError(errorMsg);
       showError(errorMsg);

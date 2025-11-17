@@ -45,8 +45,9 @@ export default function ResetPasswordPage() {
       await resetPassword(password);
       showSuccess('Password reset successfully!');
       setTimeout(() => navigate('/signin'), 1500);
-    } catch (err: any) {
-      showError(err.message || 'Failed to reset password. Please try again.');
+    } catch (err) {
+      const error = err as Error;
+      showError(error.message || 'Failed to reset password. Please try again.');
     } finally {
       setLoading(false);
     }

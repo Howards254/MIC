@@ -117,7 +117,7 @@ export default function AdminApprovals() {
     fetchData();
   };
 
-  const handleApproveInvestor = async (profileId, userId) => {
+  const handleApproveInvestor = async (profileId) => {
     await supabase.from('investor_profiles').update({ 
       is_approved: true,
       approved_by: user.id, 

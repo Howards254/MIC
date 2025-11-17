@@ -1,4 +1,4 @@
-import { Heart, Users, TrendingUp } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 export default function DonationStats({ project, donorCount }) {
   const totalDonations = project.total_donations || 0;

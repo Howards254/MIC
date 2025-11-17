@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import PageShell from '../components/layout/PageShell';
 import ProjectCard from '../components/ProjectCard';

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Zap, DollarSign, Briefcase, TreePine, Users, TrendingUp, Heart, Sparkles, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import Button from '../components/ui/Button';
 import ProjectCard from '../components/ProjectCard';
 
 export default function HomePage() {

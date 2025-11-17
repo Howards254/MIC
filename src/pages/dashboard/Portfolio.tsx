@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import useAuth from '../../hooks/useAuth';
 import { TrendingUp, DollarSign, Calendar } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 export default function Portfolio() {
   const { user } = useAuth();

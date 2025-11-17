@@ -6,7 +6,7 @@ import Card from '../../components/Card';
 import Button from '../../components/ui/Button';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { 
-  TrendingUp, DollarSign, FolderKanban, Briefcase, 
+  TrendingUp, DollarSign, FolderKanban, 
   MessageSquare, ArrowUpRight, Plus 
 } from 'lucide-react';
 

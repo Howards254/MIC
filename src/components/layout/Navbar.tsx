@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Leaf, LogOut, User, Bell, LayoutDashboard } from 'lucide-react';
+import { Menu, X, Leaf, LogOut, Bell, LayoutDashboard } from 'lucide-react';
 import Button from '../ui/Button';
 import useAuth from '../../hooks/useAuth';
 

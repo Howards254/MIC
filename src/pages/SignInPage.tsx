@@ -28,8 +28,9 @@ export default function SignInPage() {
       await signIn(email, password);
       showSuccess('Welcome back!');
       navigate('/dashboard');
-    } catch (err: any) {
-      const errorMsg = err.message || 'Invalid email or password';
+    } catch (err) {
+      const error = err as Error;
+      const errorMsg = error.message || 'Invalid email or password';
       setError(errorMsg);
       showError(errorMsg);
     } finally {

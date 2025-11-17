@@ -11,7 +11,7 @@ export default function ApplyInvestor({ rejectionReason }: ApplyInvestorProps) {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [isResubmit, setIsResubmit] = useState(!!rejectionReason);
+  const [isResubmit] = useState(!!rejectionReason);
   const [formData, setFormData] = useState({
     company_name: '',
     investment_range: '',

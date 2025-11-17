@@ -11,7 +11,7 @@ import { Calendar, User, Eye, ArrowLeft, MessageCircle } from 'lucide-react';
 
 export default function BlogPost() {
   const { slug } = useParams();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');

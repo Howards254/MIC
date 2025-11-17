@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import useAuth from '../../hooks/useAuth';
-import { DollarSign, MessageCircle, Check, X, TrendingUp, AlertCircle } from 'lucide-react';
+import { DollarSign, MessageCircle, Check, X, TrendingUp } from 'lucide-react';
 import InvestmentChat from '../../components/investments/InvestmentChat';
 
 export default function InvestmentOffers() {

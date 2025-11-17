@@ -120,12 +120,18 @@ export interface Notification {
 }
 
 // Auth Context Types
+export interface User {
+  id: string;
+  email?: string;
+  [key: string]: unknown;
+}
+
 export interface AuthContextType {
-  user: any | null;
+  user: User | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string) => Promise<any>;
-  signIn: (email: string, password: string) => Promise<any>;
+  signUp: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<Profile>;
   refreshProfile: () => void;
