@@ -271,7 +271,7 @@ export default function AdminApprovals() {
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
                       <Button size="sm" onClick={() => { setSelectedInvestor(investor); setIsViewModalOpen(true); }}><Eye size={16} className="mr-1" />View</Button>
-                      <Button size="sm" onClick={() => handleApproveInvestor(investor.id, investor.user_id)}><CheckCircle size={16} className="mr-1" />Approve</Button>
+                      <Button size="sm" onClick={() => handleApproveInvestor(investor.id)}><CheckCircle size={16} className="mr-1" />Approve</Button>
                       <Button size="sm" variant="outline" onClick={() => { setSelectedInvestor(investor); setIsRejectingInvestor(true); setIsRejectModalOpen(true); }}><XCircle size={16} className="mr-1" />Reject</Button>
                     </div>
                   </td>
@@ -308,7 +308,7 @@ export default function AdminApprovals() {
       <Modal isOpen={isRejectModalOpen} onClose={() => { setIsRejectModalOpen(false); setIsRejectingInvestor(false); setRejectionReason(''); setSelectedProject(null); setSelectedInvestor(null); }} title={isRejectingInvestor ? "Reject Investor" : "Reject Project"}>
         <div className="space-y-4">
           <p className="text-gray-600">Provide a reason for rejection:</p>
-          <Textarea value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} rows={4} placeholder="Enter rejection reason..." required />
+          <Textarea label="Rejection Reason" id="rejection-reason" value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} rows={4} placeholder="Enter rejection reason..." required />
           <div className="flex gap-4 pt-4">
             <Button fullWidth variant="outline" onClick={() => { setIsRejectModalOpen(false); setIsRejectingInvestor(false); }}>Cancel</Button>
             <Button fullWidth onClick={isRejectingInvestor ? handleRejectInvestor : handleRejectProject} disabled={!rejectionReason}>{isRejectingInvestor ? 'Reject Investor' : 'Reject Project'}</Button>
@@ -339,7 +339,7 @@ export default function AdminApprovals() {
       <Modal isOpen={isAddAdminModalOpen} onClose={() => setIsAddAdminModalOpen(false)} title="Add New Administrator">
         <form onSubmit={handleAddAdmin} className="space-y-4">
           <p className="text-gray-600">Enter the email of an existing user to make them an admin:</p>
-          <Input label="User Email" type="email" value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} placeholder="user@example.com" required />
+          <Input label="User Email" id="user-email" type="email" value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} placeholder="user@example.com" required />
           <div className="flex gap-4 pt-4">
             <Button type="button" fullWidth variant="outline" onClick={() => setIsAddAdminModalOpen(false)}>Cancel</Button>
             <Button type="submit" fullWidth>Add Admin</Button>
