@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, FolderKanban, TrendingUp, MessageSquare, 
   FileText, Settings, LogOut, Menu, X, DollarSign,
-  Users, Bell, Plus, Send, UserCog, Wallet
+  Users, Bell, Plus, Send, UserCog, Wallet, ScrollText
 } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
 
@@ -46,6 +46,7 @@ export default function DashboardLayout({ children }) {
     { name: 'Blog Management', href: '/admin/blog', icon: FileText },
     { name: 'All Projects', href: '/admin/all-projects', icon: FolderKanban },
     { name: 'All Users', href: '/admin/all-users', icon: Users },
+    { name: 'Audit Log', href: '/admin/audit-log', icon: ScrollText },
   ];
 
   const navigation = profile?.role === 'admin' ? adminNavigation : profile?.role === 'investor' ? investorNavigation : innovatorNavigation;
@@ -143,7 +144,7 @@ export default function DashboardLayout({ children }) {
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="lg:pl-64 flex flex-col min-h-screen">
         <div className="sticky top-0 z-10 flex h-16 bg-white border-b lg:hidden">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -155,11 +156,30 @@ export default function DashboardLayout({ children }) {
             <span className="text-lg font-semibold text-gray-900">Dashboard</span>
           </div>
         </div>
-        <main className="py-6">
+        <main className="flex-grow py-6">
           <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
             {children}
           </div>
         </main>
+        
+        {/* Dashboard Footer */}
+        <footer className="bg-gray-800 text-gray-300 mt-auto">
+          <div className="px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-sm text-center sm:text-left">
+                &copy; 2025 Maathai Innovation Catalyst. All rights reserved.
+              </p>
+              <div className="flex gap-4 text-sm">
+                <Link to="/terms" className="hover:text-white transition-colors">
+                  Terms & Conditions
+                </Link>
+                <a href="#" className="hover:text-white transition-colors">
+                  Help & Support
+                </a>
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );

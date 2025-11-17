@@ -23,6 +23,10 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     investor_type TEXT,
     investment_range TEXT,
     industries TEXT[],
+    is_suspended BOOLEAN DEFAULT FALSE,
+    suspended_at TIMESTAMPTZ,
+    suspended_by UUID REFERENCES public.profiles(id),
+    suspension_reason TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -42,6 +46,10 @@ CREATE POLICY "Users can insert their own profile"
 CREATE POLICY "Users can update their own profile"
     ON public.profiles FOR UPDATE
     USING (auth.uid() = id);
+
+CREATE POLICY "Admins can update any profile"
+    ON public.profiles FOR UPDATE
+    USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
 
 -- =====================================================
 -- 2. PROJECTS TABLE
@@ -395,8 +403,12 @@ CREATE TABLE IF NOT EXISTS public.investor_applications (
     investment_range TEXT NOT NULL,
     industries TEXT[],
     bio TEXT,
-    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'suspended')),
     rejection_reason TEXT,
+    approved_by UUID REFERENCES public.profiles(id),
+    approved_at TIMESTAMPTZ,
+    rejected_by UUID REFERENCES public.profiles(id),
+    rejected_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -417,6 +429,31 @@ CREATE POLICY "Users can insert their own applications"
 CREATE POLICY "Admins can update applications"
     ON public.investor_applications FOR UPDATE
     USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+
+-- =====================================================
+-- 13. ADMIN_AUDIT_LOG TABLE
+-- =====================================================
+CREATE TABLE IF NOT EXISTS public.admin_audit_log (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    admin_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    action TEXT NOT NULL,
+    target_type TEXT NOT NULL,
+    target_id UUID,
+    details JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE public.admin_audit_log ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for admin_audit_log
+CREATE POLICY "Admins can view audit logs"
+    ON public.admin_audit_log FOR SELECT
+    USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+
+CREATE POLICY "System can insert audit logs"
+    ON public.admin_audit_log FOR INSERT
+    WITH CHECK (true);
 
 -- =====================================================
 -- FUNCTIONS AND TRIGGERS
@@ -460,8 +497,13 @@ CREATE TRIGGER update_investor_applications_updated_at BEFORE UPDATE ON public.i
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO public.profiles (id, email, role)
-    VALUES (NEW.id, NEW.email, 'user');
+    INSERT INTO public.profiles (id, email, full_name, role)
+    VALUES (
+        NEW.id, 
+        NEW.email, 
+        COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+        COALESCE(NEW.raw_user_meta_data->>'role', 'user')
+    );
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -486,6 +528,202 @@ CREATE INDEX IF NOT EXISTS idx_messages_receiver_id ON public.messages(receiver_
 CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON public.notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_chat_messages_commitment_id ON public.chat_messages(commitment_id);
 CREATE INDEX IF NOT EXISTS idx_investor_applications_user_id ON public.investor_applications(user_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_role ON public.profiles(role);
+CREATE INDEX IF NOT EXISTS idx_profiles_is_suspended ON public.profiles(is_suspended);
+CREATE INDEX IF NOT EXISTS idx_admin_audit_log_admin_id ON public.admin_audit_log(admin_id);
+CREATE INDEX IF NOT EXISTS idx_admin_audit_log_target_id ON public.admin_audit_log(target_id);
+
+-- =====================================================
+-- ADMIN HELPER FUNCTIONS
+-- =====================================================
+
+-- Function to log admin actions
+CREATE OR REPLACE FUNCTION public.log_admin_action(
+    p_admin_id UUID,
+    p_action TEXT,
+    p_target_type TEXT,
+    p_target_id UUID,
+    p_details JSONB DEFAULT NULL
+)
+RETURNS UUID AS $$
+DECLARE
+    v_log_id UUID;
+BEGIN
+    INSERT INTO public.admin_audit_log (admin_id, action, target_type, target_id, details)
+    VALUES (p_admin_id, p_action, p_target_type, p_target_id, p_details)
+    RETURNING id INTO v_log_id;
+    
+    RETURN v_log_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to change user role (admin only)
+CREATE OR REPLACE FUNCTION public.admin_change_user_role(
+    p_user_id UUID,
+    p_new_role TEXT
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    v_admin_id UUID;
+BEGIN
+    -- Get current user ID
+    v_admin_id := auth.uid();
+    
+    -- Check if current user is admin
+    IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = v_admin_id AND role = 'admin') THEN
+        RAISE EXCEPTION 'Only admins can change user roles';
+    END IF;
+    
+    -- Update user role
+    UPDATE public.profiles
+    SET role = p_new_role, updated_at = NOW()
+    WHERE id = p_user_id;
+    
+    -- Log the action
+    PERFORM public.log_admin_action(
+        v_admin_id,
+        'change_role',
+        'profile',
+        p_user_id,
+        jsonb_build_object('new_role', p_new_role)
+    );
+    
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to suspend/unsuspend user (admin only)
+CREATE OR REPLACE FUNCTION public.admin_suspend_user(
+    p_user_id UUID,
+    p_suspend BOOLEAN,
+    p_reason TEXT DEFAULT NULL
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    v_admin_id UUID;
+BEGIN
+    -- Get current user ID
+    v_admin_id := auth.uid();
+    
+    -- Check if current user is admin
+    IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = v_admin_id AND role = 'admin') THEN
+        RAISE EXCEPTION 'Only admins can suspend users';
+    END IF;
+    
+    -- Update user suspension status
+    UPDATE public.profiles
+    SET 
+        is_suspended = p_suspend,
+        suspended_at = CASE WHEN p_suspend THEN NOW() ELSE NULL END,
+        suspended_by = CASE WHEN p_suspend THEN v_admin_id ELSE NULL END,
+        suspension_reason = CASE WHEN p_suspend THEN p_reason ELSE NULL END,
+        updated_at = NOW()
+    WHERE id = p_user_id;
+    
+    -- Log the action
+    PERFORM public.log_admin_action(
+        v_admin_id,
+        CASE WHEN p_suspend THEN 'suspend_user' ELSE 'unsuspend_user' END,
+        'profile',
+        p_user_id,
+        jsonb_build_object('reason', p_reason)
+    );
+    
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to approve investor application
+CREATE OR REPLACE FUNCTION public.admin_approve_investor(
+    p_application_id UUID
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    v_admin_id UUID;
+    v_user_id UUID;
+BEGIN
+    -- Get current user ID
+    v_admin_id := auth.uid();
+    
+    -- Check if current user is admin
+    IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = v_admin_id AND role = 'admin') THEN
+        RAISE EXCEPTION 'Only admins can approve investors';
+    END IF;
+    
+    -- Get user_id from application
+    SELECT user_id INTO v_user_id
+    FROM public.investor_applications
+    WHERE id = p_application_id;
+    
+    -- Update application status
+    UPDATE public.investor_applications
+    SET 
+        status = 'approved',
+        approved_by = v_admin_id,
+        approved_at = NOW(),
+        updated_at = NOW()
+    WHERE id = p_application_id;
+    
+    -- Update user profile to investor role
+    UPDATE public.profiles
+    SET 
+        role = 'investor',
+        is_investor = TRUE,
+        updated_at = NOW()
+    WHERE id = v_user_id;
+    
+    -- Log the action
+    PERFORM public.log_admin_action(
+        v_admin_id,
+        'approve_investor',
+        'investor_application',
+        p_application_id,
+        jsonb_build_object('user_id', v_user_id)
+    );
+    
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to reject investor application
+CREATE OR REPLACE FUNCTION public.admin_reject_investor(
+    p_application_id UUID,
+    p_reason TEXT
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    v_admin_id UUID;
+BEGIN
+    -- Get current user ID
+    v_admin_id := auth.uid();
+    
+    -- Check if current user is admin
+    IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = v_admin_id AND role = 'admin') THEN
+        RAISE EXCEPTION 'Only admins can reject investors';
+    END IF;
+    
+    -- Update application status
+    UPDATE public.investor_applications
+    SET 
+        status = 'rejected',
+        rejected_by = v_admin_id,
+        rejected_at = NOW(),
+        rejection_reason = p_reason,
+        updated_at = NOW()
+    WHERE id = p_application_id;
+    
+    -- Log the action
+    PERFORM public.log_admin_action(
+        v_admin_id,
+        'reject_investor',
+        'investor_application',
+        p_application_id,
+        jsonb_build_object('reason', p_reason)
+    );
+    
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- =====================================================
 -- GRANT PERMISSIONS
@@ -505,4 +743,15 @@ GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO anon, authenticated;
 -- 4. Automatic profile creation on user signup
 -- 5. Indexes for query optimization
 -- 6. Proper permissions for anon and authenticated users
+-- 7. Admin management features:
+--    - User role management (change any user's role)
+--    - User suspension/unsuspension with reason tracking
+--    - Investor application approval/rejection
+--    - Admin audit log for all administrative actions
+-- 8. Admin helper functions:
+--    - admin_change_user_role(user_id, new_role)
+--    - admin_suspend_user(user_id, suspend, reason)
+--    - admin_approve_investor(application_id)
+--    - admin_reject_investor(application_id, reason)
+--    - log_admin_action(admin_id, action, target_type, target_id, details)
 -- =====================================================

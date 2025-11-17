@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
@@ -20,6 +20,37 @@ import BlogList from './pages/blog/BlogList';
 import BlogPost from './pages/blog/BlogPost';
 import EventsPage from './pages/EventsPage';
 
+function AppContent() {
+  const location = useLocation();
+  const isDashboardOrAdmin = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin');
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {!isDashboardOrAdmin && <Navbar />}
+      <main className="flex-grow">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/jobs" element={<JobsPage />} />
+          <Route path="/explore" element={<ExploreProjectsPage />} />
+          <Route path="/project/:id" element={<ProjectDetailPage />} />
+          <Route path="/signin" element={<SignInPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/dashboard/*" element={<DashboardPage />} />
+          <Route path="/admin/*" element={<AdminPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/blog" element={<BlogList />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </main>
+      {!isDashboardOrAdmin && <Footer />}
+    </div>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
@@ -37,29 +68,7 @@ function App() {
             },
           }}
         />
-        <div className="min-h-screen flex flex-col">
-          <Navbar />
-          <main className="flex-grow">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/jobs" element={<JobsPage />} />
-              <Route path="/explore" element={<ExploreProjectsPage />} />
-              <Route path="/project/:id" element={<ProjectDetailPage />} />
-              <Route path="/signin" element={<SignInPage />} />
-              <Route path="/signup" element={<SignUpPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/dashboard/*" element={<DashboardPage />} />
-              <Route path="/admin/*" element={<AdminPage />} />
-              <Route path="/terms" element={<TermsPage />} />
-              <Route path="/events" element={<EventsPage />} />
-              <Route path="/blog" element={<BlogList />} />
-              <Route path="/blog/:slug" element={<BlogPost />} />
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
+        <AppContent />
       </BrowserRouter>
     </AuthProvider>
   );

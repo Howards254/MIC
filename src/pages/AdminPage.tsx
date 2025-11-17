@@ -9,6 +9,7 @@ import AllProjects from './admin/AllProjects';
 import AllUsers from './admin/AllUsers';
 import SendNotification from './admin/SendNotification';
 import ManageEvents from './admin/ManageEvents';
+import AuditLog from './admin/AuditLog';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 export default function AdminPage() {
@@ -33,6 +34,7 @@ export default function AdminPage() {
         <Route path="events" element={<ManageEvents />} />
         <Route path="all-projects" element={<AllProjects />} />
         <Route path="all-users" element={<AllUsers />} />
+        <Route path="audit-log" element={<AuditLog />} />
       </Routes>
     </DashboardLayout>
   );

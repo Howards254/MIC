@@ -41,7 +41,7 @@ export default function SignUpPage() {
     setLoading(true);
     
     try {
-      // Step 1: Sign up with Supabase Auth
+      // Sign up with Supabase Auth (profile will be created automatically by trigger)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -57,19 +57,7 @@ export default function SignUpPage() {
       if (authError) throw authError;
       if (!authData.user) throw new Error('Signup failed - no user returned');
 
-      // Step 2: Create profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          email: formData.email,
-          full_name: formData.fullName,
-          role: formData.role,
-        });
-
-      if (profileError) throw profileError;
-
-      // Success!
+      // Success! Profile is automatically created by database trigger
       const successMsg = 'Account created! Please check your email to verify your account.';
       setSuccess(successMsg);
       showSuccess(successMsg);
@@ -84,8 +72,6 @@ export default function SignUpPage() {
       let errorMsg = '';
       if (error.message?.includes('already registered')) {
         errorMsg = 'This email is already registered. Try signing in instead.';
-      } else if (error.message?.includes('profiles')) {
-        errorMsg = 'Database not set up. Please run the database migration first.';
       } else {
         errorMsg = error.message || 'Failed to create account. Please try again.';
       }

@@ -38,9 +38,9 @@ export default function AdminApprovals() {
         .order('created_at', { ascending: false });
 
       const investorsRes = await supabase
-        .from('investor_profiles')
+        .from('investor_applications')
         .select('*')
-        .eq('is_approved', false)
+        .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
       const adminsRes = await supabase
@@ -65,7 +65,7 @@ export default function AdminApprovals() {
           const { data: profile } = await supabase
             .from('profiles')
             .select('full_name, email')
-            .eq('id', project.innovator_id)
+            .eq('id', project.user_id)
             .single();
           return { ...project, profiles: profile };
         })
@@ -117,14 +117,20 @@ export default function AdminApprovals() {
     fetchData();
   };
 
-  const handleApproveInvestor = async (profileId) => {
-    await supabase.from('investor_profiles').update({ 
-      is_approved: true,
-      approved_by: user.id, 
-      approved_at: new Date().toISOString() 
-    }).eq('id', profileId);
-    
-    fetchData();
+  const handleApproveInvestor = async (applicationId) => {
+    try {
+      const { error } = await supabase.rpc('admin_approve_investor', {
+        p_application_id: applicationId
+      });
+      
+      if (error) throw error;
+      
+      alert('Investor approved successfully');
+      fetchData();
+    } catch (error) {
+      console.error('Error approving investor:', error);
+      alert('Failed to approve investor: ' + error.message);
+    }
   };
 
   const handleRejectInvestor = async () => {
@@ -133,26 +139,47 @@ export default function AdminApprovals() {
       return;
     }
     
-    await supabase.from('investor_profiles').update({ 
-      is_approved: false,
-      rejected_by: user.id, 
-      rejected_at: new Date().toISOString(),
-      rejection_reason: rejectionReason
-    }).eq('id', selectedInvestor.id);
-    
-    setIsRejectModalOpen(false);
-    setIsRejectingInvestor(false);
-    setRejectionReason('');
-    setSelectedInvestor(null);
-    fetchData();
+    try {
+      const { error } = await supabase.rpc('admin_reject_investor', {
+        p_application_id: selectedInvestor.id,
+        p_reason: rejectionReason
+      });
+      
+      if (error) throw error;
+      
+      alert('Investor application rejected');
+      setIsRejectModalOpen(false);
+      setIsRejectingInvestor(false);
+      setRejectionReason('');
+      setSelectedInvestor(null);
+      fetchData();
+    } catch (error) {
+      console.error('Error rejecting investor:', error);
+      alert('Failed to reject investor: ' + error.message);
+    }
   };
 
   const handleAddAdmin = async (e) => {
     e.preventDefault();
     try {
-      const { data, error } = await supabase.from('profiles').update({ role: 'admin' }).eq('email', newAdminEmail).select();
+      // First find the user by email
+      const { data: userData, error: findError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', newAdminEmail)
+        .single();
+      
+      if (findError || !userData) throw new Error('User not found');
+      
+      // Use the admin function to change role
+      const { error } = await supabase.rpc('admin_change_user_role', {
+        p_user_id: userData.id,
+        p_new_role: 'admin'
+      });
+      
       if (error) throw error;
-      if (!data || data.length === 0) throw new Error('User not found');
+      
+      alert('User promoted to admin successfully');
       setIsAddAdminModalOpen(false);
       setNewAdminEmail('');
       fetchData();
@@ -225,7 +252,7 @@ export default function AdminApprovals() {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Name</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Company</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Investor Type</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Investment Range</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Date</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Actions</th>
@@ -238,8 +265,8 @@ export default function AdminApprovals() {
                     <div className="text-sm font-medium text-gray-900">{investor.profiles?.full_name}</div>
                     <div className="text-xs text-gray-500">{investor.profiles?.email}</div>
                   </td>
-                  <td className="px-6 py-4 text-sm">{investor.company_name || 'N/A'}</td>
-                  <td className="px-6 py-4 text-sm">{investor.investment_range}</td>
+                  <td className="px-6 py-4 text-sm">{investor.investor_type || 'N/A'}</td>
+                  <td className="px-6 py-4 text-sm">{investor.investment_range || 'N/A'}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{new Date(investor.created_at).toLocaleDateString()}</td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
@@ -301,10 +328,10 @@ export default function AdminApprovals() {
         )}
         {selectedInvestor && (
           <div className="space-y-4">
-            <div><p className="text-sm font-medium text-gray-600">Company</p><p className="text-gray-900">{selectedInvestor.company_name || 'N/A'}</p></div>
-            <div><p className="text-sm font-medium text-gray-600">Investment Range</p><p className="text-gray-900">{selectedInvestor.investment_range}</p></div>
-            <div><p className="text-sm font-medium text-gray-600">Areas of Interest</p><p className="text-gray-900">{selectedInvestor.areas_of_interest?.join(', ')}</p></div>
-            <div><p className="text-sm font-medium text-gray-600">Reason</p><p className="text-gray-900">{selectedInvestor.reason}</p></div>
+            <div><p className="text-sm font-medium text-gray-600">Investor Type</p><p className="text-gray-900">{selectedInvestor.investor_type || 'N/A'}</p></div>
+            <div><p className="text-sm font-medium text-gray-600">Investment Range</p><p className="text-gray-900">{selectedInvestor.investment_range || 'N/A'}</p></div>
+            <div><p className="text-sm font-medium text-gray-600">Industries</p><p className="text-gray-900">{selectedInvestor.industries?.join(', ') || 'N/A'}</p></div>
+            <div><p className="text-sm font-medium text-gray-600">Bio</p><p className="text-gray-900">{selectedInvestor.bio || 'N/A'}</p></div>
           </div>
         )}
       </Modal>
