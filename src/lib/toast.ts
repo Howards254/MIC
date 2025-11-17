@@ -1,5 +1,8 @@
 import toast from 'react-hot-toast';
 
+// Re-export toast for direct usage
+export { toast };
+
 // Success toast
 export const showSuccess = (message: string) => {
   toast.success(message, {
