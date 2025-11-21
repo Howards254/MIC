@@ -1,0 +1,77 @@
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import Navbar from './components/layout/Navbar';
+import Footer from './components/layout/Footer';
+import ScrollToTop from './components/ScrollToTop';
+import AuthProvider from './contexts/AuthContext';
+import HomePage from './pages/HomePage';
+import JobsPage from './pages/JobsPage';
+import ExploreProjectsPage from './pages/ExploreProjectsPage';
+import ProjectDetailPage from './pages/ProjectDetailPage';
+import SignInPage from './pages/SignInPage';
+import SignUpPage from './pages/SignUpPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import DashboardPage from './pages/DashboardPage';
+import AdminPage from './pages/AdminPage';
+import TermsPage from './pages/TermsPage';
+import NotFoundPage from './pages/NotFoundPage';
+import BlogList from './pages/blog/BlogList';
+import BlogPost from './pages/blog/BlogPost';
+import EventsPage from './pages/EventsPage';
+
+function AppContent() {
+  const location = useLocation();
+  const isDashboardOrAdmin = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/admin');
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {!isDashboardOrAdmin && <Navbar />}
+      <main className="flex-grow">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/jobs" element={<JobsPage />} />
+          <Route path="/explore" element={<ExploreProjectsPage />} />
+          <Route path="/project/:id" element={<ProjectDetailPage />} />
+          <Route path="/signin" element={<SignInPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/dashboard/*" element={<DashboardPage />} />
+          <Route path="/admin/*" element={<AdminPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/blog" element={<BlogList />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </main>
+      {!isDashboardOrAdmin && <Footer />}
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <ScrollToTop />
+        <Toaster
+          position="top-right"
+          reverseOrder={false}
+          gutter={8}
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+            },
+          }}
+        />
+        <AppContent />
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
+
+export default App;
